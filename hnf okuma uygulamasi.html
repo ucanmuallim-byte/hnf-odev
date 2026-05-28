@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>hnf. — Okuma Uygulaması</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --ink: #1A1A2E;
+    --card: #FFFFFF;
+    --shadow: rgba(0,0,0,0.08);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; animation: fadeIn .3s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+
+  /* ── HOME SCREEN ── */
+  #screen-home {
+    background: linear-gradient(160deg, #667EEA 0%, #764BA2 100%);
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .home-bg-circles {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .home-bg-circles span {
+    position: absolute; border-radius: 50%; opacity: .15;
+  }
+  .home-bg-circles span:nth-child(1) { width:300px;height:300px;background:#fff;top:-80px;right:-80px; }
+  .home-bg-circles span:nth-child(2) { width:200px;height:200px;background:#fff;bottom:100px;left:-60px; }
+  .home-bg-circles span:nth-child(3) { width:120px;height:120px;background:#FFD700;top:200px;right:20px; }
+
+  .home-content {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:40px 24px; position:relative; z-index:1;
+  }
+  .home-logo {
+    font-family:'Baloo 2',cursive; font-size:72px; font-weight:800;
+    color:#fff; line-height:1; letter-spacing:-2px;
+    text-shadow: 4px 6px 0 rgba(0,0,0,0.15);
+    animation: pop .6s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .home-tagline {
+    font-size:16px; font-weight:700; color:rgba(255,255,255,.85);
+    margin-top:8px; letter-spacing:1px; text-transform:uppercase;
+  }
+  .home-mascot {
+    font-size:90px; margin:24px 0;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .home-title {
+    font-family:'Baloo 2',cursive; font-size:22px; font-weight:700;
+    color:#fff; text-align:center; margin-bottom:8px;
+  }
+  .home-sub {
+    font-size:14px; color:rgba(255,255,255,.75); text-align:center; margin-bottom:32px;
+  }
+  .btn-start {
+    background:#FFD700; color:#1A1A2E; font-family:'Baloo 2',cursive;
+    font-size:20px; font-weight:800; padding:16px 48px; border:none;
+    border-radius:50px; cursor:pointer; box-shadow:0 6px 0 #E6A800,0 8px 20px rgba(0,0,0,0.2);
+    transition:transform .1s,box-shadow .1s; letter-spacing:.5px;
+  }
+  .btn-start:active { transform:translateY(3px); box-shadow:0 3px 0 #E6A800,0 4px 10px rgba(0,0,0,0.15); }
+
+  .stats-row {
+    display:flex; gap:16px; margin-top:32px;
+  }
+  .stat-pill {
+    background:rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    border-radius:50px; padding:8px 16px; text-align:center; color:#fff;
+    font-size:12px; font-weight:700; border:1px solid rgba(255,255,255,.25);
+  }
+  .stat-pill strong { display:block; font-size:20px; font-family:'Baloo 2',cursive; }
+
+  /* ── TEXT LIST SCREEN ── */
+  #screen-list {
+    background: var(--cream);
+  }
+  .top-bar {
+    background: linear-gradient(135deg, #667EEA, #764BA2);
+    padding:16px 20px 20px; border-radius:0 0 28px 28px;
+    box-shadow:0 4px 20px rgba(102,126,234,.3);
+    position: sticky; top:0; z-index:10;
+  }
+  .top-bar-row { display:flex; align-items:center; gap:12px; }
+  .btn-back {
+    background:rgba(255,255,255,.2); border:none; border-radius:12px;
+    width:40px;height:40px; cursor:pointer; font-size:18px; color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .top-bar-title { font-family:'Baloo 2',cursive; font-size:20px; font-weight:700; color:#fff; }
+  .top-bar-sub { font-size:12px; color:rgba(255,255,255,.75); margin-top:2px; }
+  .progress-bar-wrap { margin-top:12px; background:rgba(255,255,255,.2); border-radius:50px; height:8px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:#FFD700; border-radius:50px; transition:width .5s ease; }
+  .progress-label { font-size:11px; color:rgba(255,255,255,.8); margin-top:4px; text-align:right; }
+
+  .list-scroll { flex:1; overflow-y:auto; padding:20px 16px 80px; }
+  .section-label {
+    font-size:11px; font-weight:800; color:#888; letter-spacing:2px;
+    text-transform:uppercase; margin-bottom:12px; margin-top:4px;
+    padding-left:4px;
+  }
+
+  .text-card {
+    background:#fff; border-radius:var(--radius); padding:16px;
+    margin-bottom:12px; cursor:pointer; box-shadow:0 2px 12px var(--shadow);
+    display:flex; align-items:center; gap:14px;
+    border-left:5px solid;
+    transition:transform .15s, box-shadow .15s;
+    position:relative; overflow:hidden;
+  }
+  .text-card:active { transform:scale(.98); box-shadow:0 1px 6px var(--shadow); }
+  .text-card.completed { opacity:.85; }
+  .card-emoji {
+    width:52px;height:52px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px; flex-shrink:0;
+  }
+  .card-body { flex:1; min-width:0; }
+  .card-num { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; opacity:.6; }
+  .card-title { font-family:'Baloo 2',cursive; font-size:17px; font-weight:700; line-height:1.2; margin-top:1px; }
+  .card-meta { font-size:12px; color:#888; margin-top:4px; }
+  .card-badge {
+    font-size:11px; font-weight:700; padding:3px 8px; border-radius:50px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .badge-story { background:#FFF0F0; color:#E53E3E; }
+  .badge-info { background:#EBF8FF; color:#2B6CB0; }
+  .badge-mixed { background:#F0FFF4; color:#276749; }
+  .card-check {
+    position:absolute; top:10px; right:10px;
+    width:22px;height:22px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; color:#fff; opacity:0;
+    transition:opacity .2s;
+  }
+  .text-card.completed .card-check { opacity:1; }
+
+  /* ── READING SCREEN ── */
+  #screen-read {
+    background: #fff;
+  }
+  .read-header {
+    padding:16px 20px;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid #F0F0F0;
+    position:sticky;top:0;background:#fff;z-index:10;
+  }
+  .read-header-info { flex:1; }
+  .read-header-num { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; opacity:.5; }
+  .read-header-title { font-family:'Baloo 2',cursive; font-size:18px; font-weight:700; }
+  .read-header-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:50px; }
+
+  .read-scroll { flex:1; overflow-y:auto; padding-bottom:100px; }
+
+  .read-hero {
+    height:160px; display:flex; align-items:center; justify-content:center;
+    font-size:72px; position:relative;
+  }
+  .read-hero-bg {
+    position:absolute;inset:0; opacity:.15;
+  }
+
+  .read-body { padding:0 20px 20px; }
+  .read-paragraph {
+    font-size:16px; line-height:1.8; color:#2D2D2D;
+    text-indent:1.5em; margin-bottom:12px;
+    font-weight:600;
+  }
+
+  .tab-row {
+    display:flex; border-bottom:2px solid #F0F0F0;
+    position:sticky; top:65px; background:#fff; z-index:9;
+    padding:0 20px;
+  }
+  .tab-btn {
+    flex:1; padding:12px 0; font-family:'Baloo 2',cursive;
+    font-size:14px; font-weight:700; background:none; border:none;
+    color:#aaa; cursor:pointer; border-bottom:3px solid transparent;
+    margin-bottom:-2px; transition:color .2s,border-color .2s;
+  }
+  .tab-btn.active { color:var(--tab-color,#667EEA); border-bottom-color:var(--tab-color,#667EEA); }
+
+  .tab-panel { display:none; padding:20px; }
+  .tab-panel.active { display:block; }
+
+  /* Questions */
+  .question-card {
+    background:#FAFAFA; border-radius:var(--radius-sm); padding:16px;
+    margin-bottom:14px; border:2px solid #F0F0F0;
+  }
+  .q-num {
+    display:inline-block; width:26px;height:26px;border-radius:50%;
+    background:var(--q-color,#667EEA); color:#fff;
+    font-size:13px; font-weight:800; text-align:center; line-height:26px;
+    margin-bottom:8px;
+  }
+  .q-type-tag {
+    display:inline-block; font-size:10px; font-weight:800;
+    padding:2px 8px; border-radius:50px; margin-left:6px; vertical-align:middle;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .q-text { font-size:15px; font-weight:700; line-height:1.5; color:#2D2D2D; margin-bottom:12px; white-space:pre-line; }
+
+  .answer-area {
+    background:#fff; border:2px solid #E5E5E5; border-radius:10px;
+    padding:12px; font-size:14px; min-height:70px; resize:none; width:100%;
+    font-family:'Nunito',sans-serif; font-weight:600; color:#333;
+    transition:border-color .2s;
+    outline:none;
+  }
+  .answer-area:focus { border-color:var(--q-color,#667EEA); }
+
+  .btn-check {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:12px; border-radius:10px; border:none;
+    font-family:'Baloo 2',cursive; font-size:15px; font-weight:700;
+    cursor:pointer; margin-top:10px; transition:all .15s;
+  }
+  .btn-check:active { transform:scale(.98); }
+
+  .answer-reveal {
+    background: linear-gradient(135deg,#F0FFF4,#E6FFFA);
+    border:2px solid #68D391; border-radius:10px; padding:14px;
+    margin-top:10px; display:none;
+  }
+  .answer-reveal.show { display:block; animation:fadeIn .3s; }
+  .answer-reveal-label {
+    font-size:11px; font-weight:800; color:#276749; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;
+  }
+  .answer-reveal-text { font-size:14px; font-weight:600; color:#2D3748; line-height:1.6; white-space:pre-line; }
+
+  /* Keywords */
+  .keywords-section { padding:20px; }
+  .keywords-title { font-family:'Baloo 2',cursive; font-size:18px; font-weight:700; margin-bottom:14px; }
+  .keyword-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .keyword-chip {
+    padding:8px 16px; border-radius:50px; font-size:14px; font-weight:700;
+    cursor:default; animation:chipPop .3s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes chipPop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* Score / completion */
+  .completion-card {
+    margin:20px; background:linear-gradient(135deg,#667EEA,#764BA2);
+    border-radius:var(--radius); padding:24px; text-align:center; color:#fff;
+  }
+  .completion-emoji { font-size:48px; margin-bottom:8px; }
+  .completion-title { font-family:'Baloo 2',cursive; font-size:22px; font-weight:800; }
+  .completion-sub { font-size:14px; opacity:.85; margin-top:4px; }
+  .score-display { font-family:'Baloo 2',cursive; font-size:48px; font-weight:800; color:#FFD700; margin:12px 0; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto;
+    background:#fff; border-top:1px solid #F0F0F0;
+    padding:12px 20px 20px; display:flex; gap:12px; z-index:100;
+  }
+  .btn-nav {
+    flex:1; padding:14px; border-radius:14px; border:none;
+    font-family:'Baloo 2',cursive; font-size:15px; font-weight:700;
+    cursor:pointer; transition:all .15s;
+  }
+  .btn-nav:active { transform:scale(.97); }
+  .btn-nav-prev { background:#F5F5F5; color:#555; }
+  .btn-nav-next { color:#fff; }
+
+  /* ── CONGRATS SCREEN ── */
+  #screen-congrats {
+    background:linear-gradient(160deg,#F6D365 0%,#FDA085 100%);
+    align-items:center; justify-content:center; text-align:center; padding:40px 24px;
+  }
+  .confetti-emoji { font-size:80px; animation:spin 2s linear infinite; }
+  @keyframes spin { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
+  .congrats-title { font-family:'Baloo 2',cursive; font-size:32px; font-weight:800; color:#fff; margin-top:20px; text-shadow:2px 3px 0 rgba(0,0,0,.15); }
+  .congrats-sub { font-size:16px; color:rgba(255,255,255,.9); margin-top:8px; font-weight:700; }
+  .congrats-stars { font-size:40px; margin:20px 0; letter-spacing:8px; }
+  .btn-restart {
+    background:#fff; color:#FDA085; font-family:'Baloo 2',cursive;
+    font-size:18px; font-weight:800; padding:16px 40px; border:none;
+    border-radius:50px; cursor:pointer; margin-top:12px;
+    box-shadow:0 4px 0 rgba(0,0,0,.1);
+  }
+
+  /* scrollbar hide */
+  .list-scroll::-webkit-scrollbar,
+  .read-scroll::-webkit-scrollbar { display:none; }
+
+  /* max-width container */
+  .screen { max-width:480px; margin:0 auto; }
+  body { display:flex; justify-content:center; }
+  #app { width:100%; max-width:480px; position:relative; }
+
+  /* ── KEYWORD CHIP — clickable ── */
+  .keyword-chip {
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    user-select: none;
+    position: relative;
+  }
+  .keyword-chip:active { transform: scale(.93); }
+  .keyword-chip.chip-active {
+    box-shadow: 0 0 0 3px currentColor;
+  }
+
+  /* ── DICT POPUP BUBBLE ── */
+  .dict-popup {
+    position: fixed;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.10);
+    width: 280px;
+    z-index: 99999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s, transform .2s cubic-bezier(.34,1.3,.64,1);
+    transform: scale(0.88);
+    transform-origin: bottom center;
+    overflow: visible;
+  }
+  .dict-popup.pop-open {
+    opacity: 1;
+    pointer-events: all;
+    transform: scale(1);
+  }
+  .dict-popup.pop-flipped {
+    transform-origin: top center;
+  }
+  /* arrow pointing down (popup above chip) */
+  .dict-popup:not(.pop-flipped)::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: var(--arrow-left, 50%);
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom: none;
+    border-top: 8px solid #fff;
+    filter: drop-shadow(0 2px 1px rgba(0,0,0,.08));
+  }
+  /* arrow pointing up (popup below chip) */
+  .dict-popup.pop-flipped::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: var(--arrow-left, 50%);
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top: none;
+    border-bottom: 8px solid #fff;
+    filter: drop-shadow(0 -2px 1px rgba(0,0,0,.06));
+  }
+  .pop-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .pop-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .pop-word {
+    font-family: 'Baloo 2', cursive;
+    font-size: 19px; font-weight: 800; line-height: 1;
+  }
+  .pop-source {
+    font-size: 10px; color: #999; font-weight: 700;
+    letter-spacing: .5px; text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .pop-close {
+    margin-left: auto; background: #F5F5F5; border: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 14px; cursor: pointer; color: #777;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; line-height: 1;
+  }
+  .pop-body { padding: 12px 14px 14px; }
+  .pop-tags {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;
+  }
+  .pop-tag {
+    font-size: 10px; font-weight: 800; padding: 2px 8px;
+    border-radius: 50px; background: #F0F0F0; color: #666;
+    letter-spacing: .3px;
+  }
+  .pop-meaning {
+    font-size: 14px; font-weight: 700; line-height: 1.55;
+    color: #2D2D2D; margin-bottom: 6px;
+  }
+  .pop-meaning + .pop-meaning {
+    padding-top: 8px; border-top: 1px dashed #EEE; margin-top: 4px;
+  }
+  .pop-meaning-num {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .8px; margin-bottom: 3px;
+  }
+  .pop-example {
+    font-size: 12px; color: #888; font-style: italic;
+    margin-top: 5px; line-height: 1.5;
+  }
+  .pop-example::before { content: '💬 '; font-style: normal; }
+  .pop-footer {
+    padding: 0 14px 12px;
+    text-align: center;
+  }
+  .pop-tdk-link {
+    font-size: 12px; font-weight: 700; color: #2B6CB0;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pop-not-found {
+    text-align: center; padding: 14px;
+    font-size: 13px; color: #999; font-weight: 600;
+  }
+
+  /* ── NAME ENTRY SCREEN ── */
+  #screen-name {
+    background: linear-gradient(160deg, #667EEA 0%, #764BA2 100%);
+    align-items: center; justify-content: center;
+    padding: 40px 28px; text-align: center; position: relative; overflow: hidden;
+  }
+  #screen-name .home-bg-circles span:nth-child(1) { width:260px;height:260px;background:#fff;top:-80px;right:-60px; }
+  #screen-name .home-bg-circles span:nth-child(2) { width:180px;height:180px;background:#fff;bottom:60px;left:-50px; }
+  #screen-name .home-bg-circles span:nth-child(3) { width:100px;height:100px;background:#FFD700;top:180px;right:10px; }
+  .name-logo { font-family:'Baloo 2',cursive; font-size:56px; font-weight:800; color:#fff; letter-spacing:-2px; text-shadow:3px 5px 0 rgba(0,0,0,.15); }
+  .name-mascot { font-size:72px; margin:16px 0; animation:float 3s ease-in-out infinite; }
+  .name-title { font-family:'Baloo 2',cursive; font-size:22px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .name-sub { font-size:14px; color:rgba(255,255,255,.75); margin-bottom:28px; font-weight:600; }
+  .name-input-wrap { width:100%; position:relative; margin-bottom:16px; }
+  .name-input {
+    width:100%; padding:16px 20px; border-radius:16px; border:3px solid rgba(255,255,255,.4);
+    background:rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    font-family:'Baloo 2',cursive; font-size:20px; font-weight:700; color:#fff;
+    text-align:center; outline:none; transition:border-color .2s;
+  }
+  .name-input::placeholder { color:rgba(255,255,255,.55); }
+  .name-input:focus { border-color:rgba(255,255,255,.9); }
+  .name-error { font-size:13px; color:#FFD700; font-weight:700; min-height:20px; margin-bottom:8px; }
+  .btn-name-start {
+    background:#FFD700; color:#1A1A2E; font-family:'Baloo 2',cursive;
+    font-size:20px; font-weight:800; padding:15px 40px; border:none;
+    border-radius:50px; cursor:pointer; box-shadow:0 5px 0 #E6A800;
+    transition:transform .1s,box-shadow .1s; width:100%;
+  }
+  .btn-name-start:active { transform:translateY(3px); box-shadow:0 2px 0 #E6A800; }
+
+  /* ── STUDENT GREETING in list ── */
+  .student-greeting {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,.18); border-radius:14px;
+    padding:8px 14px; margin-top:10px;
+  }
+  .student-greeting-name { font-size:14px; font-weight:800; color:#fff; }
+  .student-greeting-change { font-size:11px; color:rgba(255,255,255,.65); cursor:pointer; text-decoration:underline; }
+
+  /* ── SAVE INDICATOR ── */
+  .save-dot {
+    display:inline-block; width:8px;height:8px;border-radius:50%;
+    background:#68D391; margin-right:4px; vertical-align:middle;
+  }
+  .saved-badge {
+    font-size:11px; color:#276749; font-weight:700;
+    background:#D5F5E3; padding:2px 8px; border-radius:50px;
+    display:inline-flex; align-items:center; gap:3px;
+    opacity:0; transition:opacity .3s;
+  }
+  .saved-badge.show { opacity:1; }
+
+  /* ── CONGRATS updated ── */
+  .congrats-name { font-family:'Baloo 2',cursive; font-size:26px; font-weight:800; color:#fff; margin-top:8px; }
+  .congrats-score-box {
+    background:rgba(255,255,255,.2); border-radius:20px;
+    padding:16px 28px; margin:16px 0;
+    backdrop-filter:blur(8px);
+  }
+  .congrats-score-label { font-size:13px; color:rgba(255,255,255,.8); font-weight:700; }
+  .congrats-score-num { font-family:'Baloo 2',cursive; font-size:44px; font-weight:800; color:#FFD700; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- NAME ENTRY -->
+<div id="screen-name" class="screen active">
+  <div class="home-bg-circles"><span></span><span></span><span></span></div>
+  <div style="position:relative;z-index:1;width:100%">
+    <div class="name-logo">hnf.</div>
+    <div class="name-mascot">✏️</div>
+    <div class="name-title">Merhaba! Adın ne?</div>
+    <div class="name-sub">Cevapların kaydedilsin diye adını yaz 📝</div>
+    <div class="name-input-wrap">
+      <input class="name-input" id="name-input" type="text" placeholder="Adını buraya yaz..." maxlength="30" autocomplete="off"
+        onkeydown="if(event.key==='Enter') submitName()">
+    </div>
+    <div class="name-error" id="name-error"></div>
+    <button class="btn-name-start" onclick="submitName()">Hadi Başlayalım! 🚀</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen">
+  <div class="home-bg-circles">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="home-content">
+    <div class="home-logo">hnf.</div>
+    <div class="home-tagline">İlk Okuma · Yazma</div>
+    <div class="home-mascot">📖</div>
+    <div class="home-title">2. Sınıf Okuma Metinleri</div>
+    <div class="home-sub">10 metin · 100 anlama sorusu · Cevap anahtarı</div>
+    <button class="btn-start" onclick="goTo('list')">Başlayalım! 🚀</button>
+    <div class="stats-row">
+      <div class="stat-pill"><strong>10</strong>Metin</div>
+      <div class="stat-pill"><strong>100</strong>Soru</div>
+      <div class="stat-pill"><strong>2.</strong>Sınıf</div>
+    </div>
+  </div>
+</div>
+
+<!-- TEXT LIST -->
+<div id="screen-list" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-row">
+      <button class="btn-back" onclick="goTo('name')">←</button>
+      <div>
+        <div class="top-bar-title">📚 Okuma Metinleri</div>
+        <div class="top-bar-sub">2. Sınıf Seviyesi · MEB Temalı</div>
+      </div>
+    </div>
+    <div class="student-greeting">
+      <span>👤</span>
+      <span class="student-greeting-name" id="greeting-name"></span>
+      <span class="student-greeting-change" onclick="changeName()">değiştir</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="main-progress" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0 / 10 tamamlandı</div>
+  </div>
+  <div class="list-scroll" id="text-list"></div>
+</div>
+
+<!-- READING -->
+<div id="screen-read" class="screen">
+  <div class="read-header">
+    <button class="btn-back" onclick="goTo('list')" style="background:#F5F5F5;color:#333">←</button>
+    <div class="read-header-info">
+      <div class="read-header-num" id="rh-num"></div>
+      <div class="read-header-title" id="rh-title"></div>
+    </div>
+    <div class="read-header-badge" id="rh-badge"></div>
+  </div>
+  <div class="read-scroll">
+    <div class="read-hero" id="read-hero">
+      <div class="read-hero-bg" id="read-hero-bg"></div>
+      <span id="read-hero-emoji"></span>
+    </div>
+    <div class="tab-row" id="tab-row">
+      <button class="tab-btn active" onclick="switchTab('metin')" id="tab-metin">📄 Metin</button>
+      <button class="tab-btn" onclick="switchTab('sorular')" id="tab-sorular">❓ Sorular</button>
+      <button class="tab-btn" onclick="switchTab('kelimeler')" id="tab-kelimeler">🔑 Kelimeler</button>
+    </div>
+    <div class="tab-panel active" id="panel-metin">
+      <div class="read-body" id="read-body"></div>
+    </div>
+    <div class="tab-panel" id="panel-sorular">
+      <div id="questions-container"></div>
+    </div>
+    <div class="tab-panel" id="panel-kelimeler">
+      <div class="keywords-section">
+        <div class="keywords-title">🔑 Anahtar Kelimeler</div>
+        <div class="keyword-chips" id="keyword-chips"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="btn-nav btn-nav-prev" id="btn-prev" onclick="navigateText(-1)">← Önceki</button>
+    <button class="btn-nav btn-nav-next" id="btn-next" onclick="navigateText(1)">Sonraki →</button>
+  </div>
+</div>
+
+<!-- CONGRATS -->
+<div id="screen-congrats" class="screen">
+  <div class="confetti-emoji">🎉</div>
+  <div class="congrats-title">Tebrikler!</div>
+  <div class="congrats-name" id="congrats-name"></div>
+  <div class="congrats-stars">⭐⭐⭐</div>
+  <div class="congrats-score-box">
+    <div class="congrats-score-label">Yazdığın cevap sayısı</div>
+    <div class="congrats-score-num" id="congrats-score">0</div>
+    <div class="congrats-score-label">/ 100 soru</div>
+  </div>
+  <div style="font-family:'Baloo 2',cursive;font-size:17px;color:#fff;font-weight:700">Harika bir okuyucusun! 🌟</div>
+  <button class="btn-restart" onclick="restart()">🔄 Yeniden Başla</button>
+</div>
+
+</div><!-- /app -->
+
+<!-- DICT POPUP is injected inline per chip -->
+
+<script>
+const TEXTS = [
+  {
+    id:1, title:"Tohumun Yolculuğu", type:"hikâye", emoji:"🌱",
+    color:"#2ECC71", bg:"#D5F5E3", accent:"#27AE60",
+    body:[
+      "Küçük bir tohum, toprağın derinliklerinde uyuyordu. Bahar gelince güneş ışınları toprağı ısıtmaya başladı. Yağmur damlaları yavaş yavaş aşağıya süzüldü. Tohum, bu sıcaklığı ve nemi hissedince uyanmaya karar verdi.",
+      "Önce minik bir kök aşağıya uzandı. Sonra ince bir filiz yukarıya doğru çıkmaya çalıştı. Toprak sert ve ağırdı; ama filiz pes etmedi. Gün be gün biraz daha ilerledi.",
+      "Bir sabah filiz toprağı deldi ve güneşle karşılaştı. Yaprakları güneş ışığıyla yeşile boyandı. Hava temiz, toprak verimli, su boldu. Küçük filiz büyüyüp gelişti.",
+      "Birkaç hafta sonra filiz artık genç bir bitki olmuştu. Üzerinde renkli çiçekler açmıştı. Arılar uçuşuyor, kelebekler konuyordu. Tohumun yolculuğu harika bir çiçekle son bulmuştu.",
+      "Tohum gibi bizim de büyümek için zamana ve emeğe ihtiyacımız var. Zorluklar bizi durduramaz; çünkü büyümek için çaba gerekir."
+    ],
+    questions:[
+      {q:"Tohum hikâyenin başında neredeydi?", a:"Toprağın derinliklerinde uyuyordu.", type:"bilgi"},
+      {q:"Tohumun uyanmasını sağlayan iki şey neydi?", a:"Güneşin ısısı ve yağmurun nemi.", type:"bilgi"},
+      {q:"Filiz toprağı delerken nasıl bir zorlukla karşılaştı?", a:"Toprak sert ve ağırdı.", type:"bilgi"},
+      {q:"Filiz büyüyünce üzerinde neler oldu?", a:"Renkli çiçekler açtı, arılar ve kelebekler geldi.", type:"bilgi"},
+      {q:"Filiz neden pes etmedi? Metinden bir cümleyle açıkla.", a:"Çünkü büyümek için çaba gerekir; filiz her gün biraz daha ilerledi.", type:"çıkarım"},
+      {q:"Bu metinde 'büyümek' hem bitki hem de insanlar için anlatılıyor. İnsan büyümesiyle ilgili ne söyleniyor?", a:"İnsanların da büyümek için zamana, emek ve çabaya ihtiyacı olduğu söyleniyor.", type:"çıkarım"},
+      {q:"Bu metnin ana fikri nedir?", a:"Zorluklar karşısında pes etmeden çalışırsak hedeflerimize ulaşabiliriz.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi metnin konusudur?\na) Bir çocuğun bahçe sulaması\nb) Bir tohumun büyüme yolculuğu\nc) Arıların bal yapması\nd) Yağmurun yağması", a:"b) Bir tohumun büyüme yolculuğu", type:"çoktan seçmeli"},
+      {q:"\"Verimli\" kelimesinin anlamı nedir? Bir eş anlamlısını yaz.", a:"Bol ürün veren, bereketli.", type:"kelime"},
+      {q:"Aşağıdakileri doğru sıraya koy:\n• Filiz güneşle karşılaştı.\n• Tohum uyandı.\n• Çiçekler açtı.\n• Kök aşağıya uzandı.", a:"Tohum uyandı → Kök aşağıya uzandı → Filiz güneşle karşılaştı → Çiçekler açtı.", type:"sıralama"}
+    ],
+    keywords:["tohum","filiz","toprak","kök","büyümek","çaba","yolculuk","verimli","bahar"]
+  },
+  {
+    id:2, title:"Atatürk'ün Çocuklara Sevgisi", type:"bilgilendirici", emoji:"🇹🇷",
+    color:"#E74C3C", bg:"#FDEDEC", accent:"#C0392B",
+    body:[
+      "Mustafa Kemal Atatürk, Türkiye Cumhuriyeti'nin kurucusudur. O, ülkemizi düşman işgalinden kurtarmak için yıllarca mücadele etti. Ülkesini ve milletini çok severdi.",
+      "Atatürk, çocukları özellikle severdi. 'Çocuklar geleceğin teminatıdır.' derdi. Bunun için 23 Nisan 1920'de kurulan Türkiye Büyük Millet Meclisi'nin yıl dönümünü çocuklara armağan etti.",
+      "Her yıl 23 Nisan'da Çocuk Bayramı kutlanır. Türkiye'den ve dünyanın dört bir yanından gelen çocuklar bu bayramı birlikte kutlar. Türk çocukları ile yabancı çocuklar el ele tutuşur.",
+      "Atatürk, okulların çoğalmasını da istedi. Herkesin okuma-yazma öğrenmesi için büyük çaba harcadı. 'Hayatta en hakiki mürşit ilimdir.' sözüyle bilginin önemini anlattı.",
+      "Biz Türk çocukları olarak Atatürk'ün bize verdiği bu güzel mirası korumak ve geliştirmek zorundayız. Okumak, öğrenmek ve ülkemizi sevmek en büyük görevimizdir."
+    ],
+    questions:[
+      {q:"Atatürk kimdir?", a:"Türkiye Cumhuriyeti'nin kurucusudur.", type:"bilgi"},
+      {q:"23 Nisan ne zaman ve neden önemlidir?", a:"23 Nisan 1920'de Türkiye Büyük Millet Meclisi kuruldu; Atatürk bu tarihi çocuklara armağan etti.", type:"bilgi"},
+      {q:"Atatürk çocukları neden bu kadar önemsedi?", a:"Çocukların geleceğin teminatı olduğunu düşündüğü için.", type:"çıkarım"},
+      {q:"23 Nisan'da kimler bir arada kutlama yapar?", a:"Türk çocukları ile dünyadan gelen yabancı çocuklar.", type:"bilgi"},
+      {q:"\"Hayatta en hakiki mürşit ilimdir.\" sözü ne anlama gelir?", a:"Hayatta insana en doğru yolu gösteren şey bilimdir/ilimdir.", type:"kelime"},
+      {q:"Atatürk okulların artması için neden çaba harcadı?", a:"Herkesin okuma-yazma öğrenmesini istediği için.", type:"çıkarım"},
+      {q:"Bu metnin ana mesajı nedir?", a:"Atatürk'ün çocuklara ve eğitime verdiği önem, bizim de okuyup öğrenerek ülkemizi sevmemiz gerektiği.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi yanlıştır?\na) Atatürk çocukları severdi.\nb) 23 Nisan sadece Türk çocuklarına aittir.\nc) Atatürk okulların çoğalmasını istedi.\nd) 23 Nisan 1920'de Meclis kuruldu.", a:"b) 23 Nisan sadece Türk çocuklarına aittir. (Dünya çocukları da kutlar)", type:"çoktan seçmeli"},
+      {q:"\"Teminat\" kelimesinin zıt anlamlısı nedir?", a:"Tehlike, güvensizlik (teminat = güvence).", type:"kelime"},
+      {q:"Metindeki olayları sıraya koy:\n• 23 Nisan Çocuk Bayramı ilan edildi.\n• Atatürk okullar için çalıştı.\n• Atatürk Türkiye'yi düşmandan kurtardı.\n• Meclis kuruldu.", a:"Türkiye kurtarıldı → Meclis kuruldu → 23 Nisan ilan edildi → Okullar için çalıştı.", type:"sıralama"}
+    ],
+    keywords:["Atatürk","cumhuriyet","23 Nisan","çocuk bayramı","eğitim","mücadele","ilim","vatan"]
+  },
+  {
+    id:3, title:"İki Arkadaş, Bir Mutsuzluk", type:"hikâye", emoji:"🎨",
+    color:"#E67E22", bg:"#FDEBD0", accent:"#D35400",
+    body:[
+      "Elif ve Zeynep, ilkokulun ikinci sınıfında en iyi arkadaştı. Her gün birlikte okula gidiyor, teneffüslerde oyun oynuyor, eve dönerken şarkı söylüyorlardı.",
+      "Bir gün sanat dersinde her çocuktan en güzel resmini yapması istendi. Elif güzel bir sonbahar ağacı çizdi. Zeynep ise renklerini karıştırdı; ağaçlar mor, gökyüzü sarı çıktı.",
+      "Zeynep üzüldü. 'Benim resmim çirkin.' dedi, başını öne eğdi. Elif bunu görünce Zeynep'in yanına koştu.",
+      "'Zeynep, senin renklerin çok özgün! Ben hiç mor ağaç görmedim.' dedi gülerek. 'Belki sen sihirli bir ormanı resmettin!'",
+      "Zeynep önce şaşırdı, sonra güldü. Öğretmenleri resmi görünce 'Bu resim çok yaratıcı!' dedi. Zeynep o gün hem güzel bir ders aldı hem de gerçek bir arkadaşın ne demek olduğunu anladı."
+    ],
+    questions:[
+      {q:"Elif ile Zeynep hangi sınıfta okuyordu?", a:"İkinci sınıfta.", type:"bilgi"},
+      {q:"Sanat dersinde öğrencilerden ne yapmaları istendi?", a:"En güzel resimlerini yapmaları istendi.", type:"bilgi"},
+      {q:"Zeynep neden üzüldü?", a:"Renklerini karıştırdığı için resminin çirkin çıktığını düşündü.", type:"bilgi"},
+      {q:"Elif, Zeynep'e nasıl destek oldu?", a:"Resminin özgün ve yaratıcı olduğunu söyleyerek onu güldürdü.", type:"çıkarım"},
+      {q:"Öğretmen Zeynep'in resmi için ne dedi?", a:"\"Bu resim çok yaratıcı!\" dedi.", type:"bilgi"},
+      {q:"Elif'in davranışı ne tür bir özellik göstermektedir?", a:"Arkadaşını desteklemek, empati kurmak, yardımseverlik.", type:"çıkarım"},
+      {q:"Bu hikâyenin vermek istediği ana mesaj nedir?", a:"Gerçek bir arkadaş seni üzgün görünce yanında olur ve cesaretlendirir; farklılıklar da güzel olabilir.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi metne göre doğrudur?\na) Zeynep'in resmini öğretmen beğenmedi.\nb) Elif kendi resmini yapıp Zeynep'i umursamadı.\nc) Elif, Zeynep'in farklı renklerini olumlu yorumladı.\nd) Zeynep okula gitmek istemedi.", a:"c) Elif, Zeynep'in farklı renklerini olumlu bir şekilde yorumladı.", type:"çoktan seçmeli"},
+      {q:"\"Özgün\" kelimesinin anlamını yaz. Bir eş anlamlısı nedir?", a:"Başkasına benzemeyen, kendine has. Eş anlamlısı: orijinal.", type:"kelime"},
+      {q:"Hikâyedeki olayları sırala:\n• Zeynep güldü.\n• Resim dersi yapıldı.\n• Elif Zeynep'e destek oldu.\n• Zeynep üzüldü.", a:"Resim dersi → Zeynep üzüldü → Elif destek oldu → Zeynep güldü.", type:"sıralama"}
+    ],
+    keywords:["arkadaşlık","özgün","yaratıcı","destek","empati","sanat","resim","cesaret"]
+  },
+  {
+    id:4, title:"Kitapların Büyülü Dünyası", type:"bilgilendirici", emoji:"📚",
+    color:"#8E44AD", bg:"#F5EEF8", accent:"#6C3483",
+    body:[
+      "Bir kitap açtığında yeni bir dünyaya kapı aralarsın. Sayfalarda şehirler, ormanlar, denizler ve maceralar seni bekler. Okumak hem eğlenceli hem de faydalıdır.",
+      "Kitaplar sayesinde yeni kelimeler öğrenirsin. Kelime haznesi geniş olan biri daha iyi konuşur ve yazar. Sınıfta derslerinde de daha başarılı olursun.",
+      "Okuma alışkanlığı küçük yaşta kazanılır. Her gün sadece on dakika okumak bile büyük fark yaratır. Kitap okurken hayal gücün de gelişir.",
+      "Kütüphaneler kitapların evi gibidir. Orada sessizce oturup okuyabilir, farklı konularda kitaplar bulabilirsin. Türkiye'deki pek çok okul ve şehir kütüphanesi ücretsiz olarak hizmet verir.",
+      "Sana bir öneri: Her hafta en az bir kitap oku. Kitap arkadaşların hiç seni hayal kırıklığına uğratmaz. Onlar her zaman yanındadır!"
+    ],
+    questions:[
+      {q:"Metne göre kitap okumak bize ne gibi faydalar sağlar?", a:"Yeni kelimeler öğretir, hayal gücünü geliştirir, derslerde başarılı olmayı sağlar.", type:"bilgi"},
+      {q:"Okuma alışkanlığı ne zaman kazanılır?", a:"Küçük yaşta kazanılır.", type:"bilgi"},
+      {q:"Kütüphane nasıl bir yer olarak tanımlanıyor?", a:"Kitapların evi gibi; ücretsiz kitap okunabilen sessiz bir ortam.", type:"bilgi"},
+      {q:"Metinde okuyucuya ne önerilmektedir?", a:"Her hafta en az bir kitap okunması öneriliyor.", type:"bilgi"},
+      {q:"Neden kelime haznesi geniş olan biri daha başarılı olur?", a:"Daha iyi konuşur, daha iyi yazar ve derslerde daha başarılı olur.", type:"çıkarım"},
+      {q:"\"Her gün sadece on dakika okumak bile büyük fark yaratır\" derken ne anlatılmak istenmiştir?", a:"Az da olsa düzenli okuma alışkanlığının zamanla büyük gelişme sağladığı anlatılıyor.", type:"çıkarım"},
+      {q:"Bu metnin ana fikri nedir?", a:"Kitap okumanın önemi ve okuma alışkanlığının küçük yaşta kazanılması gerektiği.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi yanlıştır?\na) Kütüphaneler ücretsiz hizmet verebilir.\nb) Kitap okumak hayal gücünü köreltir.\nc) Her gün 10 dakika okumak faydalıdır.\nd) Okuma alışkanlığı küçük yaşta kazanılır.", a:"b) Kitap okumak hayal gücünü köreltir. (Tam tersi geliştirir)", type:"çoktan seçmeli"},
+      {q:"\"Hazne\" kelimesinin anlamını açıkla. \"Kelime hazinesi\" yerine kullanılan başka bir kelime nedir?", a:"Hazne = saklama yeri, depo. Kelime hazinesi = kelime dağarcığı.", type:"kelime"},
+      {q:"Metinde anlatılan bilgileri önem sırasına göre 3 madde halinde yaz.", a:"1. Kitap okumak yeni kelimeler öğretir.\n2. Okuma alışkanlığı erken kazanılmalıdır.\n3. Kütüphanelerden yararlanılabilir.", type:"sıralama"}
+    ],
+    keywords:["kitap","okuma","kütüphane","kelime","hayal gücü","alışkanlık","fayda","macera"]
+  },
+  {
+    id:5, title:"Çevre Bizim Evimiz", type:"bilgilendirici", emoji:"🌍",
+    color:"#0E7490", bg:"#CCFBF1", accent:"#0C5F73",
+    body:[
+      "Dünya, tüm canlıların evidir. Ağaçlar temiz hava üretir; nehirler ve denizler suyu döngüye sokar. Toprak bitkilere ev sahipliği yapar. Her canlı, bu büyük dengenin bir parçasıdır.",
+      "Ne yazık ki insanlar çevreye zarar vermektedir. Fabrikalardan çıkan dumanlar havayı kirletir. Plastik atıklar denizlere karışır. Ormanlara zarar verilince hayvanlar yuvasını kaybeder.",
+      "Küçük adımlarla büyük değişimler yapabiliriz. Kâğıt ve plastik kutuları doğru kutulara atmak geri dönüşümü destekler. Kullanmadığımız ışıkları söndürmek enerji tasarrufu sağlar.",
+      "Okulda çevre kulübü kurabilirsin. Parkları temizleyen etkinliklere katılabilirsin. Arkadaşlarına çevre bilinci kazandırabilirsin.",
+      "Dünyamızı seviyorsak onu korumalıyız. Her iyi alışkanlık, gelecek nesillere daha yeşil bir dünya bırakmak demektir."
+    ],
+    questions:[
+      {q:"Metne göre ağaçlar ne işe yarar?", a:"Temiz hava üretirler.", type:"bilgi"},
+      {q:"İnsanlar çevreye nasıl zarar vermektedir? İki örnek ver.", a:"Fabrika dumanları havayı kirletir; plastik atıklar denizlere karışır.", type:"bilgi"},
+      {q:"Geri dönüşüm için ne yapmak gerekir?", a:"Kâğıt ve plastiği doğru kutulara atmak gerekir.", type:"bilgi"},
+      {q:"Okulda çevre için neler yapılabilir?", a:"Çevre kulübü kurulabilir, parklar temizlenebilir, arkadaşlara çevre bilinci kazandırılabilir.", type:"bilgi"},
+      {q:"Ormanlara zarar verilince ne olur?", a:"Hayvanlar yuvasını kaybeder; bu doğal dengeyi bozar.", type:"çıkarım"},
+      {q:"\"Her iyi alışkanlık, gelecek nesillere daha yeşil bir dünya bırakmak demektir.\" Bu cümle ne anlama gelir?", a:"Bugün yaptığımız küçük olumlu davranışların geleceğe kalıcı fayda sağlayacağı anlamına gelir.", type:"çıkarım"},
+      {q:"Bu metnin ana fikri nedir?", a:"Çevreyi korumak herkesin sorumluluğudur ve küçük adımlarla büyük değişimler yapılabilir.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi çevre dostu bir davranıştır?\na) Plastik şişeleri denize atmak\nb) Işıkları açık bırakmak\nc) Kâğıtları geri dönüşüm kutusuna atmak\nd) Arabayla kısa mesafe gitmek", a:"c) Kâğıtları geri dönüşüm kutusuna atmak.", type:"çoktan seçmeli"},
+      {q:"\"Döngü\" kelimesinin anlamını açıkla.", a:"Sürekli tekrarlanan, birbirini izleyen olaylar zinciri; dönüp duran bir sistem.", type:"kelime"},
+      {q:"Çevre sorunlarını ve çözümlerini eşleştir:\nSorun: hava kirliliği → Çözüm: ?\nSorun: plastik atık → Çözüm: ?\nSorun: enerji israfı → Çözüm: ?", a:"Hava kirliliği → araç yerine yürüyüş.\nPlastik atık → geri dönüşüm kutuları.\nEnerji israfı → kullanılmayan ışıkları söndürmek.", type:"sıralama"}
+    ],
+    keywords:["çevre","geri dönüşüm","kirlilik","enerji tasarrufu","doğa","denge","orman","koruma"]
+  },
+  {
+    id:6, title:"Yardımcı Eller", type:"hikâye", emoji:"🤝",
+    color:"#D4A017", bg:"#FEF9C3", accent:"#A07810",
+    body:[
+      "Mahallede yaşlı Ayşe Teyze'nin kolu alçıya alınmıştı. Her gün market alışverişini yapamıyor, yalnız başına zorlanıyordu.",
+      "Komşularından üçüncü sınıf öğrencisi Can, bunu duyunca düşündü. 'Ona nasıl yardım edebilirim?' dedi. O gün annesine durumu anlattı. Annesi de 'Birlikte gidelim.' dedi.",
+      "Can ve annesi her gün Ayşe Teyze'ye uğramaya başladı. Can ona gazete okuyordu. Annesi ise alışverişini yapıyor, yemeklerini bırakıyordu. Ayşe Teyze çok mutlu oldu.",
+      "Birkaç hafta sonra Ayşe Teyze'nin kolu iyileşti. 'Siz olmasaydınız ne yapardım bilmiyorum.' dedi gözlerinde yaşlarla.",
+      "Can bu yaşananlardan çok şey öğrendi. Yardım etmek insanı hem mutlu eder hem de büyütür. Bir gün herkesin yardıma ihtiyacı olabilir."
+    ],
+    questions:[
+      {q:"Ayşe Teyze'nin sorunu neydi?", a:"Kolu alçıya alınmıştı ve alışveriş yapamıyordu.", type:"bilgi"},
+      {q:"Can, Ayşe Teyze'ye nasıl yardım etti?", a:"Ona gazete okudu.", type:"bilgi"},
+      {q:"Can'ın annesi ne yaptı?", a:"Alışveriş yaptı ve yemek bıraktı.", type:"bilgi"},
+      {q:"Hikâyenin sonunda Ayşe Teyze ne hissetti?", a:"Çok mutlu oldu ve minnettar kaldı.", type:"bilgi"},
+      {q:"Can neden yardım etmeye karar verdi?", a:"Ayşe Teyze'nin yalnız ve zorlukta olduğunu duyduğu için.", type:"çıkarım"},
+      {q:"\"Yardım etmek insanı büyütür.\" derken ne anlatılmak istenmiştir?", a:"Yardım etmenin insanı içten olgunlaştırdığı, karakterini geliştirdiği anlatılıyor.", type:"çıkarım"},
+      {q:"Bu hikâyenin ana mesajı nedir?", a:"Yardımseverlik güzel bir değerdir; ihtiyaç sahiplerine yardım etmek hem onları hem de bizi mutlu eder.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi bu hikâyede anlatılanlardan değildir?\na) Can Ayşe Teyze'ye gazete okudu.\nb) Can'ın annesi alışveriş yaptı.\nc) Can okul arkadaşlarını da yardıma çağırdı.\nd) Ayşe Teyze'nin kolu alçıya alınmıştı.", a:"c) Can okul arkadaşlarını da yardıma çağırdı. (Metinde yok)", type:"çoktan seçmeli"},
+      {q:"\"Minnettar\" kelimesinin anlamını yaz.", a:"Birine karşı şükran duyan, iyilik borçlu hisseden.", type:"kelime"},
+      {q:"Olayları doğru sıraya koy:\n• Kol iyileşti.\n• Can annesiyle Ayşe Teyze'ye gitmeye başladı.\n• Kol alçıya alındı.\n• Can durumu annesine anlattı.", a:"Kol alçıya alındı → Can anlattı → Her gün gittiler → Kol iyileşti.", type:"sıralama"}
+    ],
+    keywords:["yardımseverlik","komşuluk","empati","minnettar","sorumluluk","paylaşmak","iyilik"]
+  },
+  {
+    id:7, title:"Dağların Çocuğu: Kurt", type:"bilgilendirici", emoji:"🐺",
+    color:"#2980B9", bg:"#D6EAF8", accent:"#1A5276",
+    body:[
+      "Kurt, Türkiye'nin dağlık bölgelerinde yaşayan zeki ve güçlü bir hayvandır. Genellikle sürüler hâlinde dolaşır; bu sürülere 'paket' denir.",
+      "Kurtlar, sürü hâlinde avlanır. En deneyimli kurt sürüye önderlik eder. Sürünün her üyesinin bir görevi vardır. Yavru kurtlar, büyüklerini izleyerek yaşamı öğrenir.",
+      "Kurtların işitmesi çok güçlüdür. Birkaç kilometre öteden sesi duyabilirler. Ulumaları hem birbirleriyle iletişim hem de bölgelerini korumak için kullanılır.",
+      "Kurtlar, ekosistemin önemli bir parçasıdır. Hasta ya da yaşlı hayvanları avlayarak sürü sağlığını korurlar. Böylece doğadaki denge korunur.",
+      "Ne yazık ki kurtların doğal yaşam alanları giderek azalmaktadır. Ormanların yok edilmesi ve aşırı avlanma kurtları tehdit etmektedir. Onları korumak hem onların hem de doğanın iyiliği içindir."
+    ],
+    questions:[
+      {q:"Kurt sürülerine ne ad verilir?", a:"Paket denir.", type:"bilgi"},
+      {q:"Sürüde en deneyimli kurt ne iş yapar?", a:"Sürüye önderlik eder.", type:"bilgi"},
+      {q:"Yavru kurtlar nasıl öğrenir?", a:"Büyüklerini izleyerek.", type:"bilgi"},
+      {q:"Kurtlar ekosisteme nasıl katkı sağlar?", a:"Hasta ve yaşlı hayvanları avlayarak sürü sağlığını korur ve doğadaki dengeyi sağlarlar.", type:"çıkarım"},
+      {q:"Kurtların yaşam alanları neden azalmaktadır?", a:"Ormanların yok edilmesi ve aşırı avlanma yüzünden.", type:"bilgi"},
+      {q:"\"Kurtlar ekosistemde denge sağlar.\" Bu cümleyi kendi sözlerinizle açıklayın.", a:"Kurtlar hasta hayvanları avlayarak sürülerin sağlıklı kalmasına yardım eder, böylece doğada her şey dengeli kalır.", type:"çıkarım"},
+      {q:"Bu metnin ana fikri nedir?", a:"Kurtlar zeki, sosyal ve ekosistem için önemli hayvanlardır; korunmaları gerekmektedir.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi metne göre yanlıştır?\na) Kurtlar sürü hâlinde avlanır.\nb) Kurtların işitme duyusu çok güçlüdür.\nc) Kurtlar yalnız başlarına yaşarlar.\nd) Kurt uluması iletişim için kullanılır.", a:"c) Kurtlar yalnız başlarına yaşarlar. (Sürü halinde yaşarlar)", type:"çoktan seçmeli"},
+      {q:"\"Ekosistem\" kelimesini açıkla.", a:"Canlıların ve çevrelerinin bir arada oluşturduğu sistem.", type:"kelime"},
+      {q:"Kurtla ilgili öğrenilen bilgileri sırala:\n• Avlanma biçimi\n• Yaşam yeri\n• Ekosistemdeki rolü\n• Tehditleri", a:"Yaşam yeri → Avlanma biçimi → Ekosistemdeki rolü → Tehditleri.", type:"sıralama"}
+    ],
+    keywords:["kurt","sürü","ekosistem","doğa","avlanma","iletişim","uluma","tehlike","denge"]
+  },
+  {
+    id:8, title:"Annemin Elleri", type:"hikâye", emoji:"💛",
+    color:"#E74C3C", bg:"#FDEDEC", accent:"#C0392B",
+    body:[
+      "Sabahları uyandığımda ilk gördüğüm şey annemin elleridir. O eller kahvaltıyı hazırlar, okul çantamı düzeltir, saçlarımı tarar.",
+      "Annemin elleri bazen bir doktorun eli gibidir. Dizim kanarsa yıkar, temizler, sarmalar. 'Geçecek yavrum.' der, acım gerçekten de geçer.",
+      "Bazen de o eller bir öğretmenin eli gibi çalışır. Ödevlerimde bana yardım eder, bir şeyi anlayamazsam tekrar tekrar anlatır.",
+      "Akşamları masal okurken annemin sesi ile elleri birlikte dans eder gibidir. Sayfaları çevirir, resimleri gösterir, beni sımsıkı sarar.",
+      "Annelerin elleri yorulmaz. Her gün bizim için ter dökerler, emek verirler. Annem, seni çok seviyorum. Seninle olmak benim için en büyük hediyedir."
+    ],
+    questions:[
+      {q:"Sabahları çocuk ilk olarak ne görür?", a:"Annesinin ellerini.", type:"bilgi"},
+      {q:"Annenin elleri hangi iki mesleğe benzetilmiştir?", a:"Doktor (diz kanarsa) ve öğretmen (ödev yardımında).", type:"bilgi"},
+      {q:"Akşamları anne ne yapar?", a:"Masal okur, sayfaları çevirir, resimleri gösterir, çocuğu sarar.", type:"bilgi"},
+      {q:"Çocuk annesine ne söylemek istiyor?", a:"Onu çok sevdiğini ve annesinin onun için en büyük hediye olduğunu.", type:"bilgi"},
+      {q:"\"Annenin elleri bazen bir doktorun eli gibidir.\" Bu benzetme neden yapılmış?", a:"Çünkü anne de doktor gibi yaraları temizler, sarar ve teselli eder.", type:"çıkarım"},
+      {q:"Bu metin okuyucuda ne hissettirmek istiyor?", a:"Anneye karşı sevgi, minnet ve farkındalık hissettirmek istiyor.", type:"çıkarım"},
+      {q:"Bu metnin ana mesajı nedir?", a:"Annelerin emeği ve sevgisi paha biçilemez; annelerimize minnettar olmak ve onları sevmek gerekir.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi metne göre doğrudur?\na) Anne sadece yemek pişirir.\nb) Annenin elleri çocuğa ödev yardımı da yapar.\nc) Çocuk her sabah geç kalkar.\nd) Anne masal okumaktan hoşlanmaz.", a:"b) Annenin elleri çocuğa ödev yardımı da yapar.", type:"çoktan seçmeli"},
+      {q:"\"Sarmak\" fiilinin iki farklı anlamını yaz.", a:"1. Yarayı sarmak: yaralı yeri bağlamak.\n2. Kucaklamak, sevgiyle sıkıca tutmak.", type:"kelime"},
+      {q:"Metinde annenin yaptığı işleri sabahtan akşama sırala.", a:"Sabah: kahvaltı, çanta, saç.\nGün içi: yara sar, ödev yardımı.\nAkşam: masal oku, sar.", type:"sıralama"}
+    ],
+    keywords:["anne","sevgi","emek","minnet","ödev","masal","şefkat","el","hediye"]
+  },
+  {
+    id:9, title:"Kardeşim ve Ben", type:"hikâye", emoji:"🧸",
+    color:"#8E44AD", bg:"#F5EEF8", accent:"#6C3483",
+    body:[
+      "Kardeşim Mert, iki yaşında küçük bir çocuktur. Her şeye dokunur, her şeyi ağzına götürür. Bazen çok yorucu olur; ama onu çok severim.",
+      "Bir gün lego parçalarımı dizmişim, tam kulemizi bitirirken Mert geldi ve hepsini yıktı. Çok sinirlenecektim ama Mert 'yıkıldı!' diyerek güldü.",
+      "O kahkahaya ben de güldüm. Sonra ona 'Sen de yap.' dedim. Birlikte legoları dizdik. Mert bir parçayı üste koyunca 'Ben yaptım!' diye zıpladı.",
+      "O gece annem bana 'Kardeşinle çok iyi oynadınız bugün.' dedi. 'Böyle bir kardeşe sahip olmak ne kadar şanslısın.' diye ekledi.",
+      "Mert bazen sinir bozucu olur, doğru. Ama o benim küçük kardeşim. Ona sabır göstermek, ona yardım etmek benim görevim. Ve gün sonunda o güldüğünde ben de mutlu oluyorum."
+    ],
+    questions:[
+      {q:"Mert kaç yaşındadır?", a:"İki yaşındadır.", type:"bilgi"},
+      {q:"Legoları kim yıktı?", a:"Mert yıktı; küçük olduğu için her şeye dokunuyor.", type:"bilgi"},
+      {q:"Büyük kardeş önce nasıl hissetti, sonra ne oldu?", a:"Önce sinirlenecekti, ama Mert'in kahkahası onu da güldürdü.", type:"bilgi"},
+      {q:"Annenin sözü ne anlama gelir?", a:"Kardeşiyle iyi vakit geçiren çocukların çok şanslı olduğunu söylüyor.", type:"çıkarım"},
+      {q:"Büyük kardeş neden Mert'in güldürmesine kızamadı?", a:"Mert'in masum mutluluğu ve kahkahası onu da mutlu etti.", type:"çıkarım"},
+      {q:"\"Sabır göstermek\" neden büyük bir erdem sayılır?", a:"Öfkeyi kontrol edip anlayışlı olmak zordur; bu kişiyi olgunlaştırır.", type:"ana fikir"},
+      {q:"Bu hikâyenin ana mesajı nedir?", a:"Kardeşler birbirine sabır ve sevgiyle yaklaşmalıdır; paylaşmak ve oynamak mutluluk getirir.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi hikâyede geçmez?\na) Mert legoları yıktı.\nb) Büyük kardeş kızdı ve odadan çıktı.\nc) İkisi birlikte lego yaptı.\nd) Anne kardeşleri övdü.", a:"b) Büyük kardeş kızdı ve odadan çıktı. (Öfkelenmedi, güldü)", type:"çoktan seçmeli"},
+      {q:"\"Sinir bozucu\" ifadesini başka kelimelerle nasıl anlatırsın?", a:"Kişiyi rahatsız eden, sabır isteyen, tahrik eden.", type:"kelime"},
+      {q:"Olayları sıraya koy:\n• Mert 'Ben yaptım!' diye zıpladı.\n• Büyük kardeş legoları dizdi.\n• Annem kardeşleri övdü.\n• Mert legoları yıktı.", a:"Legolar dizildi → Mert yıktı → İkisi birlikte yaptı, Mert zıpladı → Anne övdü.", type:"sıralama"}
+    ],
+    keywords:["kardeş","sabır","paylaşmak","sevgi","lego","oynamak","mutluluk","aile"]
+  },
+  {
+    id:10, title:"Okumayı Seviyorum!", type:"hikâye + bilgi", emoji:"⭐",
+    color:"#2ECC71", bg:"#D5F5E3", accent:"#1A9E55",
+    body:[
+      "Dün Türkçe dersimizde öğretmenimiz bize bir soru sordu: 'Okumayı seviyor musunuz?' Sınıfın yarısı 'evet' dedi, yarısı ses çıkarmadı.",
+      "Öğretmenimiz güldü. 'Bugün okumayı sevdireceğim size.' dedi. Sonra bize çok ilginç bir hikâye okumaya başladı. Hikâye bir çocuğun macera dolu günlerini anlatıyordu.",
+      "Öğretmenimiz okurken sesini bazen yükseltiyordu, bazen fısıldıyordu. Sanki gerçekten o maceranın içindeydik. Hiç kimse konuşmuyordu.",
+      "Hikâye bitince herkes 'Devamı var mı?' diye sordu. Öğretmenimiz güldü. 'Devamını kendiniz okuyun!' dedi ve kitabı sınıf kütüphanesine koydu.",
+      "O gün beş arkadaş kitabı almak için sıraya girdi. Ben de birincisiydim. İşte o zaman anladım: Okumak büyülüdür. Sadece denemek yeterli; gerisi kendiliğinden gelir."
+    ],
+    questions:[
+      {q:"Öğretmenin sınıfa sorduğu soru neydi?", a:"\"Okumayı seviyor musunuz?\"", type:"bilgi"},
+      {q:"Öğretmen hikâyeyi nasıl okudu?", a:"Bazen yüksek sesle, bazen fısıldayarak okudu.", type:"bilgi"},
+      {q:"Hikâye bitince öğretmen ne yaptı?", a:"Kitabı sınıf kütüphanesine koydu.", type:"bilgi"},
+      {q:"Kaç öğrenci kitabı almak için sıraya girdi?", a:"Beş öğrenci.", type:"bilgi"},
+      {q:"Neden hiç kimse konuşmuyordu?", a:"Hikâye çok ilginçti ve öğretmenin anlatımı herkesi o maceranın içine çekti.", type:"çıkarım"},
+      {q:"\"Gerisi kendiliğinden gelir.\" cümlesi ne anlama gelir?", a:"Bir kez okumayı denersen zevkini alır ve artık kendisi seni çeker; zorlama olmaz.", type:"çıkarım"},
+      {q:"Bu metnin ana fikri nedir?", a:"Okumayı sevmek için sadece bir kez denemek yeter; iyi bir kitap okuma aşkını kendiliğinden yaratır.", type:"ana fikir"},
+      {q:"Aşağıdakilerden hangisi doğrudur?\na) Sınıftaki herkes okumayı sevdiğini söyledi.\nb) Öğretmen kitabı eve götürdü.\nc) Beş öğrenci kitabı almak istedi.\nd) Öğretmen hikâyeyi düz bir sesle okudu.", a:"c) Beş öğrenci kitabı almak istedi.", type:"çoktan seçmeli"},
+      {q:"\"Büyülü\" kelimesinin mecaz anlamını açıkla.", a:"Burada büyülü = insanı kendine çeken, etkileyici, hayranlık uyandıran anlamında kullanılmıştır.", type:"kelime"},
+      {q:"Bu hikâyedeki olayları sırala:\n• Öğrenciler kitap için sıraya girdi.\n• Öğretmen hikâye okudu.\n• Öğretmen soruyu sordu.\n• Öğretmen kitabı kütüphaneye koydu.", a:"Soru soruldu → Hikâye okundu → Kitap kütüphaneye kondu → Öğrenciler sıraya girdi.", type:"sıralama"}
+    ],
+    keywords:["okumak","hikâye","öğretmen","merak","kütüphane","büyülü","macera","sevmek"]
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────────────
+let currentTextIdx = 0;
+let currentTab = 'metin';
+let studentName = localStorage.getItem('hnf_name') || '';
+let completed = new Set(JSON.parse(localStorage.getItem('hnf_completed') || '[]'));
+let answersShown = {};
+
+// Saved answers: { "textId_qIdx": "cevap metni", ... }
+function loadAnswers() {
+  try { return JSON.parse(localStorage.getItem('hnf_answers') || '{}'); } catch(e) { return {}; }
+}
+function saveAnswer(key, val) {
+  const all = loadAnswers();
+  all[key] = val;
+  try { localStorage.setItem('hnf_answers', JSON.stringify(all)); } catch(e){}
+}
+function countAnswered() {
+  return Object.values(loadAnswers()).filter(v => v && v.trim().length > 0).length;
+}
+
+const TYPE_LABELS = {
+  'bilgi':          {label:'Bilgi',       bg:'#EBF8FF',color:'#2B6CB0'},
+  'çıkarım':        {label:'Çıkarım',     bg:'#F0FFF4',color:'#276749'},
+  'ana fikir':      {label:'Ana Fikir',   bg:'#FFF5F5',color:'#C53030'},
+  'çoktan seçmeli': {label:'Çok Seçmeli',bg:'#FFFBEB',color:'#92600A'},
+  'kelime':         {label:'Kelime',      bg:'#F5EEF8',color:'#6C3483'},
+  'sıralama':       {label:'Sıralama',    bg:'#FFF0F6',color:'#97266D'},
+};
+
+// ─── NAME FLOW ────────────────────────────────────────────────────
+function submitName() {
+  const val = document.getElementById('name-input').value.trim();
+  if (!val) {
+    document.getElementById('name-error').textContent = '⚠️ Lütfen adını yaz!';
+    document.getElementById('name-input').focus();
+    return;
+  }
+  studentName = val;
+  try { localStorage.setItem('hnf_name', val); } catch(e){}
+  document.getElementById('name-error').textContent = '';
+  goTo('list');
+}
+
+function changeName() {
+  document.getElementById('name-input').value = studentName;
+  goTo('name');
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  if (screen === 'list') renderList();
+  if (screen === 'congrats') renderCongrats();
+  window.scrollTo(0,0);
+}
+
+function openText(idx) {
+  currentTextIdx = idx;
+  answersShown = {};
+  renderReadScreen();
+  goTo('read');
+  switchTab('metin');
+}
+
+function navigateText(dir) {
+  const next = currentTextIdx + dir;
+  if (next < 0 || next >= TEXTS.length) return;
+  openText(next);
+}
+
+// ─── RENDER LIST ──────────────────────────────────────────────────
+function renderList() {
+  // greeting
+  const greet = document.getElementById('greeting-name');
+  if (greet) greet.textContent = studentName ? `👋 ${studentName}` : '';
+
+  const container = document.getElementById('text-list');
+  const done = completed.size;
+  document.getElementById('main-progress').style.width = (done/10*100)+'%';
+  document.getElementById('progress-label').textContent = `${done} / 10 tamamlandı`;
+
+  const TYPE_BADGE = {
+    'hikâye': {cls:'badge-story', label:'Hikâye'},
+    'bilgilendirici': {cls:'badge-info', label:'Bilgi'},
+    'hikâye + bilgi': {cls:'badge-mixed', label:'Karma'},
+  };
+
+  container.innerHTML = `<div class="section-label">Tüm Metinler</div>`;
+
+  TEXTS.forEach((t, i) => {
+    const isDone = completed.has(t.id);
+    const badge = TYPE_BADGE[t.type] || {cls:'badge-info', label:t.type};
+    // count saved answers for this text
+    const allAns = loadAnswers();
+    const ansCount = t.questions.filter((_,qi) => {
+      const v = allAns[`${t.id}_${qi}`];
+      return v && v.trim().length > 0;
+    }).length;
+    const div = document.createElement('div');
+    div.className = 'text-card' + (isDone ? ' completed' : '');
+    div.style.borderLeftColor = t.color;
+    div.innerHTML = `
+      <div class="card-emoji" style="background:${t.bg}">${t.emoji}</div>
+      <div class="card-body">
+        <div class="card-num" style="color:${t.color}">Metin ${t.id}</div>
+        <div class="card-title">${t.title}</div>
+        <div class="card-meta">${ansCount > 0 ? `<span class="save-dot"></span>${ansCount}/10 cevap yazıldı · ` : ''}${t.keywords.length} anahtar kelime</div>
+      </div>
+      <span class="card-badge ${badge.cls}">${badge.label}</span>
+      <div class="card-check" style="background:${t.color}">✓</div>
+    `;
+    div.onclick = () => openText(i);
+    container.appendChild(div);
+  });
+}
+
+// ─── RENDER READ SCREEN ───────────────────────────────────────────
+function renderReadScreen() {
+  const t = TEXTS[currentTextIdx];
+
+  document.getElementById('rh-num').textContent = `METİN ${t.id} / 10`;
+  document.getElementById('rh-num').style.color = t.color;
+  document.getElementById('rh-title').textContent = t.title;
+
+  const TYPE_BADGE = {'hikâye':'badge-story','bilgilendirici':'badge-info','hikâye + bilgi':'badge-mixed'};
+  const rh = document.getElementById('rh-badge');
+  rh.className = 'read-header-badge ' + (TYPE_BADGE[t.type]||'badge-info');
+  rh.textContent = t.type;
+
+  // Hero
+  document.getElementById('read-hero').style.background = `linear-gradient(135deg, ${t.color}22, ${t.bg})`;
+  document.getElementById('read-hero-emoji').textContent = t.emoji;
+
+  // Tab color
+  document.querySelectorAll('.tab-btn').forEach(b => b.style.setProperty('--tab-color', t.color));
+
+  // Body
+  const body = document.getElementById('read-body');
+  body.innerHTML = t.body.map(p => `<p class="read-paragraph">${p}</p>`).join('');
+
+  // Questions
+  renderQuestions(t);
+
+  // Keywords
+  const chips = document.getElementById('keyword-chips');
+  chips.innerHTML = '';
+  const chipColors = ['#FEF9C3','#D5F5E3','#EBF8FF','#F5EEF8','#FDEBD0','#FDEDEC','#CCFBF1'];
+  const chipTextColors = ['#92600A','#276749','#2B6CB0','#6C3483','#D35400','#C0392B','#0C5F73'];
+  t.keywords.forEach((kw, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'keyword-chip';
+    chip.style.background = chipColors[i % chipColors.length];
+    chip.style.color = chipTextColors[i % chipTextColors.length];
+    chip.style.animationDelay = (i * 0.05) + 's';
+    chip.textContent = kw;
+    chip.onclick = (e) => { e.stopPropagation(); openDict(chip, kw); };
+    chips.appendChild(chip);
+  });
+
+  // Nav buttons
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  btnPrev.style.display = currentTextIdx === 0 ? 'none' : 'flex';
+  btnNext.style.background = `linear-gradient(135deg, ${t.color}, ${t.accent})`;
+  if (currentTextIdx === TEXTS.length - 1) {
+    btnNext.textContent = '🎉 Tamamla';
+    btnNext.onclick = () => { markDone(t.id); goTo('congrats'); };
+  } else {
+    btnNext.textContent = 'Sonraki →';
+    btnNext.onclick = () => { markDone(t.id); navigateText(1); };
+  }
+}
+
+function renderQuestions(t) {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  const allAns = loadAnswers();
+
+  t.questions.forEach((q, qi) => {
+    const qKey = `${t.id}_${qi}`;
+    const typeInfo = TYPE_LABELS[q.type] || {label:q.type, bg:'#EEE', color:'#333'};
+    const savedVal = allAns[qKey] || '';
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.style.setProperty('--q-color', t.color);
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div>
+          <span class="q-num" style="background:${t.color}">${qi+1}</span>
+          <span class="q-type-tag" style="background:${typeInfo.bg};color:${typeInfo.color}">${typeInfo.label}</span>
+        </div>
+        <span class="saved-badge ${savedVal ? 'show' : ''}" id="saved_${qKey}">
+          <span class="save-dot"></span>kaydedildi
+        </span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <textarea class="answer-area" placeholder="Cevabını buraya yaz..." rows="3" id="ans_${qKey}">${savedVal}</textarea>
+      <button class="btn-check" id="btn_${qKey}"
+        style="background:${t.bg};color:${t.color};border:2px solid ${t.color}"
+        onclick="toggleAnswer('${qKey}', ${qi}, ${t.id-1})">
+        💡 Cevabı Gör
+      </button>
+      <div class="answer-reveal ${answersShown[qKey] ? 'show' : ''}" id="rev_${qKey}">
+        <div class="answer-reveal-label">✔ Cevap Anahtarı</div>
+        <div class="answer-reveal-text">${q.a}</div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    // Auto-save on input with debounce
+    const ta = card.querySelector(`#ans_${qKey}`);
+    const badge = card.querySelector(`#saved_${qKey}`);
+    let timer;
+    ta.addEventListener('input', () => {
+      clearTimeout(timer);
+      badge.classList.remove('show');
+      timer = setTimeout(() => {
+        saveAnswer(qKey, ta.value);
+        badge.classList.add('show');
+        renderList(); // refresh answer counts in background
+      }, 600);
+    });
+
+    if (answersShown[qKey]) {
+      const btn = card.querySelector(`#btn_${qKey}`);
+      btn.textContent = '🙈 Cevabı Gizle';
+    }
+  });
+}
+
+function toggleAnswer(qKey, qi, textIdx) {
+  const t = TEXTS[textIdx];
+  const rev = document.getElementById('rev_'+qKey);
+  const btn = document.getElementById('btn_'+qKey);
+  answersShown[qKey] = !answersShown[qKey];
+  if (answersShown[qKey]) {
+    rev.classList.add('show');
+    btn.innerHTML = '🙈 Cevabı Gizle';
+  } else {
+    rev.classList.remove('show');
+    btn.innerHTML = '💡 Cevabı Gör';
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['metin','sorular','kelimeler'].forEach(name => {
+    document.getElementById('tab-'+name).classList.toggle('active', name === tab);
+    document.getElementById('panel-'+name).classList.toggle('active', name === tab);
+  });
+}
+
+function markDone(id) {
+  completed.add(id);
+  try { localStorage.setItem('hnf_completed', JSON.stringify([...completed])); } catch(e){}
+}
+
+function renderCongrats() {
+  const el = document.getElementById('congrats-name');
+  if (el) el.textContent = studentName ? `${studentName}, tüm metinleri bitirdin! 🎊` : 'Tüm metinleri bitirdin! 🎊';
+  const sc = document.getElementById('congrats-score');
+  if (sc) sc.textContent = countAnswered();
+}
+
+function restart() {
+  completed = new Set();
+  try {
+    localStorage.removeItem('hnf_completed');
+    localStorage.removeItem('hnf_answers');
+    localStorage.removeItem('hnf_name');
+  } catch(e){}
+  studentName = '';
+  document.getElementById('name-input').value = '';
+  goTo('name');
+}
+
+// ─── TDK SÖZLÜK VERİTABANI ────────────────────────────────────────
+// Tüm anahtar kelimelerin TDK kaynaklı tanımları
+const TDK = {
+  // METİN 1 — Tohumun Yolculuğu
+  "tohum": {
+    emoji: "🌱", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["isim", "bitki bilimi"],
+    anlamlar: [
+      { metin: "Bitkilerin çoğalmasını sağlayan, uygun koşullarda filizlenip yeni bir bitki oluşturan küçük yapı.", ornek: "Tohumları toprağa ektik, birkaç gün sonra filizlenmeye başladılar." }
+    ]
+  },
+  "filiz": {
+    emoji: "🌿", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim", "bitki"],
+    anlamlar: [
+      { metin: "Tohumdan ya da gövdeden çıkan ilk ince, genç sürgün.", ornek: "Tohumdan çıkan ince filiz güneşe doğru uzandı." },
+      { metin: "Mecaz: Yeni yetişen, umut vaat eden genç.", ornek: "O, ülkemizin geleceğine yetişen bir filizdir." }
+    ]
+  },
+  "toprak": {
+    emoji: "🌍", color: "#8B5E3C", bg: "#F5E6D3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bitkilerin içinde yetiştiği, kayaların ayrışmasıyla oluşan doğal madde; yer.", ornek: "Çiçekler verimli toprakta daha güzel büyür." },
+      { metin: "Vatan, yurt anlamında da kullanılır.", ornek: "Bu toprakları atalarımızdan devraldık." }
+    ]
+  },
+  "kök": {
+    emoji: "🌳", color: "#5D4037", bg: "#EFEBE9",
+    tags: ["isim", "bitki bilimi"],
+    anlamlar: [
+      { metin: "Bitkinin toprağa gömülen, su ve besin soğuran alt bölümü.", ornek: "Ağacın kökleri toprağın derinlerine uzanmıştı." },
+      { metin: "Bir şeyin temeli, kaynağı.", ornek: "Sorunun kökü çok eskiye dayanıyor." }
+    ]
+  },
+  "büyümek": {
+    emoji: "📈", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["eylem"],
+    anlamlar: [
+      { metin: "Boyut, hacim veya ağırlık bakımından gelişmek, artmak.", ornek: "Bitki her gün biraz daha büyüdü." },
+      { metin: "Çocukluktan olgunluğa geçmek, gelişmek.", ornek: "Büyüdükçe daha çok şey öğreniyoruz." }
+    ]
+  },
+  "çaba": {
+    emoji: "💪", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir amaca ulaşmak için gösterilen güçlü çalışma ve emek.", ornek: "Başarıya ulaşmak için çok çaba harcadı." }
+    ]
+  },
+  "yolculuk": {
+    emoji: "🚶", color: "#3498DB", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir yerden başka bir yere gitme işi; seyahat.", ornek: "Uzun bir yolculuktan sonra evine döndü." },
+      { metin: "Mecaz: Bir sürecin başından sonuna kadar geçilen aşamalar.", ornek: "Hayat güzel bir yolculuktur." }
+    ]
+  },
+  "verimli": {
+    emoji: "🌾", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["sıfat"],
+    anlamlar: [
+      { metin: "Bol ürün veren, bereketli; faydalı sonuçlar doğuran.", ornek: "Verimli topraklarda güzel ürünler yetişir." }
+    ]
+  },
+  "bahar": {
+    emoji: "🌸", color: "#E91E63", bg: "#FCE4EC",
+    tags: ["isim", "mevsim"],
+    anlamlar: [
+      { metin: "İlkbahar; kış ile yaz arasındaki, doğanın canlandığı mevsim.", ornek: "Bahar gelince çiçekler açmaya başladı." },
+      { metin: "Mecaz: Gençlik, canlılık dönemi.", ornek: "Hayatının baharında her şeyi öğrenmek istiyordu." }
+    ]
+  },
+
+  // METİN 2 — Atatürk
+  "cumhuriyet": {
+    emoji: "🏛️", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim", "siyaset"],
+    anlamlar: [
+      { metin: "Devlet yönetiminin halkın seçtiği temsilcilere dayandığı yönetim biçimi.", ornek: "Türkiye Cumhuriyeti 1923 yılında kurulmuştur." }
+    ]
+  },
+  "mücadele": {
+    emoji: "⚔️", color: "#C0392B", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir amaca ulaşmak için karşılaşılan güçlüklerle savaşma, uğraşma.", ornek: "Bağımsızlık için yıllarca mücadele ettiler." }
+    ]
+  },
+  "ilim": {
+    emoji: "🔬", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim", "Arapça kökenli"],
+    anlamlar: [
+      { metin: "Bilim; gözlem ve deneylerle elde edilen düzenli bilgi bütünü.", ornek: "Atatürk 'Hayatta en hakiki mürşit ilimdir.' demiştir." }
+    ]
+  },
+  "vatan": {
+    emoji: "🇹🇷", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Kişinin doğduğu, yetiştiği ve bağlılık duyduğu ülke, yurt.", ornek: "Vatanımız için her şeyi yaparız." }
+    ]
+  },
+  "eğitim": {
+    emoji: "🎓", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bireyin bilgi, beceri ve değerlerini geliştirmek amacıyla yapılan planlı öğretim.", ornek: "Kaliteli eğitim, toplumun temelidir." }
+    ]
+  },
+
+  // METİN 3 — Arkadaşlık
+  "arkadaşlık": {
+    emoji: "🤝", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "İki ya da daha fazla kişi arasındaki sevgi ve güvene dayalı yakın ilişki.", ornek: "Gerçek arkadaşlık her koşulda sürer." }
+    ]
+  },
+  "özgün": {
+    emoji: "✨", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["sıfat"],
+    anlamlar: [
+      { metin: "Başkalarından farklı, kendine has, orijinal.", ornek: "Zeynep'in resmi çok özgün bir tarz taşıyordu." }
+    ]
+  },
+  "yaratıcı": {
+    emoji: "🎨", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["sıfat"],
+    anlamlar: [
+      { metin: "Yeni fikirler ve eserler üretebilen, özgün düşünebilen.", ornek: "Yaratıcı çocuklar farklı bakış açılarıyla düşünür." }
+    ]
+  },
+  "empati": {
+    emoji: "💛", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim", "psikoloji"],
+    anlamlar: [
+      { metin: "Başkasının duygularını ve bakış açısını anlayabilme, kendini onun yerine koyabilme yetisi.", ornek: "Empati kurarak arkadaşının neden üzüldüğünü anladı." }
+    ]
+  },
+  "destek": {
+    emoji: "🌟", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Birine yardım etme, güç ve cesaret verme.", ornek: "Arkadaşının desteğiyle zorlu sınavı atlattı." }
+    ]
+  },
+  "cesaret": {
+    emoji: "🦁", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Tehlike ya da zorluklar karşısında yılmama, gözüpek olma durumu.", ornek: "Cesaretle ilerledi ve başardı." }
+    ]
+  },
+
+  // METİN 4 — Kitap
+  "kitap": {
+    emoji: "📚", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Ciltlenmiş ya da dikiş tutturulmuş sayfalardan oluşan yazılı veya basılı eser.", ornek: "Her gün en az bir saat kitap okuyor." }
+    ]
+  },
+  "kütüphane": {
+    emoji: "🏫", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Kitap ve diğer yayınların toplandığı, okuyucuların yararlanmasına sunulduğu yer.", ornek: "Okul kütüphanesinde yüzlerce kitap var." }
+    ]
+  },
+  "alışkanlık": {
+    emoji: "🔄", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Sürekli tekrarlanarak kazanılan ve kolaylıkla yapılır hâle gelen davranış biçimi.", ornek: "Okuma alışkanlığı küçük yaşta kazanılmalıdır." }
+    ]
+  },
+  "macera": {
+    emoji: "🗺️", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Beklenmedik, heyecanlı ve tehlikeli olaylarla dolu yaşantı ya da serüven.", ornek: "Kitabın kahramanı pek çok macera yaşadı." }
+    ]
+  },
+  "fayda": {
+    emoji: "💡", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir şeyin sağladığı yarar, kazanım.", ornek: "Kitap okumanın sayısız faydası vardır." }
+    ]
+  },
+
+  // METİN 5 — Çevre
+  "geri dönüşüm": {
+    emoji: "♻️", color: "#0E7490", bg: "#CCFBF1",
+    tags: ["isim", "çevre"],
+    anlamlar: [
+      { metin: "Kullanılmış maddelerin işlenerek yeniden kullanılabilir hâle getirilmesi.", ornek: "Kâğıt ve plastikleri geri dönüşüm kutularına atmalıyız." }
+    ]
+  },
+  "denge": {
+    emoji: "⚖️", color: "#0E7490", bg: "#CCFBF1",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Karşıt güçlerin ya da unsurların birbirini dengelemesi durumu; denge hali.", ornek: "Doğadaki dengeyi korumalıyız." }
+    ]
+  },
+  "orman": {
+    emoji: "🌲", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Büyük alan kaplayan, sık ağaçlardan oluşan doğal bitki örtüsü.", ornek: "Ormanlar temiz hava üretir ve birçok canlıya ev sahipliği yapar." }
+    ]
+  },
+  "koruma": {
+    emoji: "🛡️", color: "#0E7490", bg: "#CCFBF1",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir şeyi zarar görmekten, yok olmaktan ya da kötüleşmekten sakındırma.", ornek: "Doğanın korunması gelecek nesillere armağandır." }
+    ]
+  },
+  "kirlilik": {
+    emoji: "🏭", color: "#7F8C8D", bg: "#F2F3F4",
+    tags: ["isim", "çevre"],
+    anlamlar: [
+      { metin: "Hava, su veya toprağın zararlı maddelerle bozulması durumu.", ornek: "Fabrikalar hava kirliliğine neden olmaktadır." }
+    ]
+  },
+  "doğa": {
+    emoji: "🌿", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "İnsanın müdahalesi olmadan var olan canlı ve cansız varlıkların tümü; tabiat.", ornek: "Doğayla uyum içinde yaşamalıyız." }
+    ]
+  },
+
+  // METİN 6 — Yardımseverlik
+  "yardımseverlik": {
+    emoji: "🤲", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim", "değer"],
+    anlamlar: [
+      { metin: "Başkalarına karşılıksız yardım etme eğilimi ve alışkanlığı.", ornek: "Yardımseverlik en güzel insanlık özelliklerinden biridir." }
+    ]
+  },
+  "minnettar": {
+    emoji: "🙏", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["sıfat", "Farsça kökenli"],
+    anlamlar: [
+      { metin: "Birine yapılan iyilik nedeniyle şükran duyan, borçlu hisseden.", ornek: "Yardımın için sana çok minnetarım." }
+    ]
+  },
+  "sorumluluk": {
+    emoji: "📋", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir kişinin kendi davranışlarının ya da üstlendiği görevin sonuçlarını üstlenme yükümlülüğü.", ornek: "Verilen görevi sorumlulukla yerine getirdi." }
+    ]
+  },
+  "paylaşmak": {
+    emoji: "💝", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["eylem"],
+    anlamlar: [
+      { metin: "Sahip olunan bir şeyi başkalarıyla bölüşmek; bir durum ya da duyguyu başkasıyla yaşamak.", ornek: "Elindekini paylaşmak çok güzel bir davranıştır." }
+    ]
+  },
+  "iyilik": {
+    emoji: "💛", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim", "değer"],
+    anlamlar: [
+      { metin: "İyi olma durumu; insanlara yararlı olma, onlara güzellik ve mutluluk getirme.", ornek: "İyilik eden iyilik bulur." }
+    ]
+  },
+  "komşuluk": {
+    emoji: "🏘️", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Komşu olma hali; yan yana yaşayan insanlar arasındaki ilişki ve dayanışma.", ornek: "Komşuluk, birbirine yardım etmekle güzelleşir." }
+    ]
+  },
+
+  // METİN 7 — Kurt
+  "sürü": {
+    emoji: "🐺", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Aynı türden hayvanların bir arada oluşturduğu grup.", ornek: "Kurtlar sürü halinde avlanır." }
+    ]
+  },
+  "ekosistem": {
+    emoji: "🌐", color: "#0E7490", bg: "#CCFBF1",
+    tags: ["isim", "biyoloji"],
+    anlamlar: [
+      { metin: "Bir bölgedeki canlıların ve cansız çevrelerinin oluşturduğu birbirine bağlı sistem.", ornek: "Her canlı, içinde bulunduğu ekosistemi etkiler." }
+    ]
+  },
+  "avlanma": {
+    emoji: "🏹", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Hayvanların besin elde etmek amacıyla başka hayvanları yakalama ya da öldürme eylemi.", ornek: "Kurtlar sürü halinde avlanarak başarı sağlar." }
+    ]
+  },
+  "iletişim": {
+    emoji: "💬", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bilgi, duygu ya da düşüncelerin aktarılması; bireyler veya gruplar arası bilgi alışverişi.", ornek: "Kurtlar uluyarak birbirleriyle iletişim kurar." }
+    ]
+  },
+  "uluma": {
+    emoji: "🌕", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Kurdun ya da köpeğin çıkardığı uzun, tiz ses.", ornek: "Kurdun uluması geceyi dolduruyordu." }
+    ]
+  },
+  "tehlike": {
+    emoji: "⚠️", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Zarar verme ya da kötü sonuç doğurma ihtimali olan durum.", ornek: "Kurtlar, azalan ormanlar nedeniyle tehlike altındadır." }
+    ]
+  },
+
+  // METİN 8 — Anne
+  "anne": {
+    emoji: "💛", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Çocuğunu doğuran kadın; ana.", ornek: "Annem benim için her şeyi yapar." }
+    ]
+  },
+  "sevgi": {
+    emoji: "❤️", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Birine ya da bir şeye duyulan derin bağlılık ve sıcaklık duygusu.", ornek: "Annemin sevgisi sonsuzdur." }
+    ]
+  },
+  "emek": {
+    emoji: "🌟", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir iş ya da amaç için harcanan güç ve çalışma.", ornek: "Annem bizim için çok emek harcıyor." }
+    ]
+  },
+  "minnet": {
+    emoji: "🙏", color: "#D4A017", bg: "#FEF9C3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Yapılan iyilik karşısında duyulan şükran, borçlu olma duygusu.", ornek: "Anneme olan minnettim hiç bitmez." }
+    ]
+  },
+  "şefkat": {
+    emoji: "💗", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bir kimseye duyulan içten ilgi ve koruyucu sevgi.", ornek: "Annenin şefkati insanı iyileştirir." }
+    ]
+  },
+  "masal": {
+    emoji: "📖", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Olağanüstü kişi ve olayları anlatan, çoğunlukla çocuklara yönelik sözlü ya da yazılı halk anlatısı.", ornek: "Annem her gece bana masal okurdu." }
+    ]
+  },
+
+  // METİN 9 — Kardeş
+  "kardeş": {
+    emoji: "👫", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Aynı anne ve babadan doğmuş kişilerin her biri.", ornek: "Kardeşimle her gün oynuyoruz." }
+    ]
+  },
+  "sabır": {
+    emoji: "⏳", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Güçlükler ve bekleyişler karşısında yılmadan, öfkelenmeden dayanma gücü.", ornek: "Sabır, en büyük erdemlerden biridir." }
+    ]
+  },
+  "mutluluk": {
+    emoji: "😊", color: "#27AE60", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "İsteklerin gerçekleşmesiyle ya da sevilen şeylerle birlikte olunca duyulan hoş duygu, sevinç.", ornek: "Kardeşimin gülüşü bana mutluluk verir." }
+    ]
+  },
+  "aile": {
+    emoji: "👨‍👩‍👧‍👦", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Evlilik ve kan bağıyla birbirine bağlı kişilerin oluşturduğu toplum birimi.", ornek: "Aile, toplumun temelidir." }
+    ]
+  },
+
+  // METİN 10 — Okuma Sevgisi
+  "merak": {
+    emoji: "🔍", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Bilinmeyen ya da yeni bir şeyi öğrenme isteği, ilgi duyma.", ornek: "Meraklı bir çocuk her şeyi sormak ister." }
+    ]
+  },
+  "hikâye": {
+    emoji: "📖", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Gerçek ya da tasarlanmış olayları anlatan kısa yazılı anlatı.", ornek: "Öğretmenimiz bize ilginç bir hikâye anlattı." }
+    ]
+  },
+  "öğretmen": {
+    emoji: "🎓", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Okullarda öğrencilere bilgi ve beceri kazandırmayı meslek edinen kişi.", ornek: "Öğretmenim bize okumayı sevdirdi." }
+    ]
+  },
+  "okumak": {
+    emoji: "👁️", color: "#2ECC71", bg: "#D5F5E3",
+    tags: ["eylem"],
+    anlamlar: [
+      { metin: "Yazılı bir metni gözle ya da sesli olarak algılamak.", ornek: "Her gün kitap okumak çok faydalıdır." },
+      { metin: "Okul hayatını sürdürmek; eğitim görmek.", ornek: "İkinci sınıfta okuyorum." }
+    ]
+  },
+  "sevmek": {
+    emoji: "❤️", color: "#E74C3C", bg: "#FDEDEC",
+    tags: ["eylem"],
+    anlamlar: [
+      { metin: "Birine ya da bir şeye sevgi duymak, çok beğenmek.", ornek: "Kitap okumayı çok seviyorum." }
+    ]
+  },
+
+  // Ek ortak kelimeler
+  "lego": {
+    emoji: "🧱", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim", "yabancı köken"],
+    anlamlar: [
+      { metin: "Birbirine geçirilen renkli plastik parçalardan oluşan yapı oyuncağı.", ornek: "Kardeşimle lego oynadık." }
+    ]
+  },
+  "oynamak": {
+    emoji: "🎮", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["eylem"],
+    anlamlar: [
+      { metin: "Bir oyun oynamak; eğlence amacıyla hareket etmek.", ornek: "Teneffüste arkadaşlarımla oynadım." }
+    ]
+  },
+  "resim": {
+    emoji: "🖼️", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Boya, kalem veya başka araçlarla yüzey üzerine yapılan görsel eser.", ornek: "Sanat dersinde güzel bir resim çizdim." }
+    ]
+  },
+  "sanat": {
+    emoji: "🎨", color: "#E67E22", bg: "#FDEBD0",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Güzellik yaratmak amacıyla yapılan her türlü etkinlik ya da bu etkinliğin ürünü.", ornek: "Sanat insanın duygularını dışa vurmasını sağlar." }
+    ]
+  },
+  "hayal gücü": {
+    emoji: "💭", color: "#8E44AD", bg: "#F5EEF8",
+    tags: ["isim"],
+    anlamlar: [
+      { metin: "Olmayan ya da yaşanmamış şeyleri zihinde canlandırma yetisi.", ornek: "Kitap okumak hayal gücünü geliştirir." }
+    ]
+  },
+  "kelime": {
+    emoji: "🔤", color: "#2980B9", bg: "#EBF8FF",
+    tags: ["isim", "dilbilim"],
+    anlamlar: [
+      { metin: "Bir anlam taşıyan ve dilbilgisinde en küçük anlamlı birim sayılan ses topluluğu; sözcük.", ornek: "Her gün yeni kelimeler öğreniyorum." }
+    ]
+  }
+};
+
+// ─── DICT POPUP ───────────────────────────────────────────────────
+let activeChip = null;
+
+function openDict(chipEl, word) {
+  const key = word.toLowerCase().trim();
+  const entry = TDK[key];
+
+  closeDict();
+
+  let bodyHtml = '';
+  if (!entry) {
+    bodyHtml = `<div class="pop-not-found">Tanım bulunamadı.<br>
+      <a href="https://sozluk.gov.tr/?ara=${encodeURIComponent(word)}" target="_blank" style="color:#2B6CB0;font-weight:700;font-size:12px">TDK'da ara →</a>
+    </div>`;
+  } else {
+    const tagsHtml = (entry.tags||[]).map(t=>`<span class="pop-tag">${t}</span>`).join('');
+    const meaningsHtml = entry.anlamlar.map((m,i)=>`
+      <div class="pop-meaning">
+        ${entry.anlamlar.length>1?`<div class="pop-meaning-num" style="color:${entry.color}">${i+1}. anlam</div>`:''}
+        ${m.metin}
+        ${m.ornek?`<div class="pop-example">${m.ornek}</div>`:''}
+      </div>`).join('');
+    bodyHtml = `
+      ${tagsHtml?`<div class="pop-tags">${tagsHtml}</div>`:''}
+      ${meaningsHtml}
+      <div class="pop-footer">
+        <a class="pop-tdk-link" href="https://sozluk.gov.tr/?ara=${encodeURIComponent(word)}" target="_blank">
+          📚 TDK'da aç
+        </a>
+      </div>`;
+  }
+
+  const color = entry ? entry.color : '#555';
+  const bg    = entry ? entry.bg    : '#F5F5F5';
+  const emoji = entry ? entry.emoji : '📖';
+
+  // Build popup and attach to body so nothing clips it
+  const popup = document.createElement('div');
+  popup.className = 'dict-popup';
+  popup.id = 'dict-popup-active';
+  popup.innerHTML = `
+    <div class="pop-header">
+      <div class="pop-icon" style="background:${bg}">${emoji}</div>
+      <div>
+        <div class="pop-word" style="color:${color}">${word}</div>
+        <div class="pop-source">TDK Türkçe Sözlük</div>
+      </div>
+      <button class="pop-close" onclick="closeDict()">✕</button>
+    </div>
+    <div class="pop-body">${bodyHtml}</div>`;
+
+  document.body.appendChild(popup);
+  chipEl.classList.add('chip-active');
+  activeChip = chipEl;
+
+  // Position after render so we know popup dimensions
+  requestAnimationFrame(() => {
+    positionPopup(popup, chipEl);
+    popup.classList.add('pop-open');
+  });
+
+  setTimeout(() => document.addEventListener('click', outsideClick), 10);
+}
+
+function positionPopup(popup, chipEl) {
+  const MARGIN = 10;
+  const POPUP_W = 280;
+  const chip = chipEl.getBoundingClientRect();
+  const vw   = window.innerWidth;
+  const vh   = window.innerHeight;
+
+  popup.style.width  = POPUP_W + 'px';
+  popup.style.position = 'fixed';
+  popup.style.zIndex = '99999';
+
+  // Horizontal: centre on chip, clamp to viewport
+  let left = chip.left + chip.width / 2 - POPUP_W / 2;
+  left = Math.max(MARGIN, Math.min(left, vw - POPUP_W - MARGIN));
+  popup.style.left = left + 'px';
+
+  // Arrow offset to still point at chip centre
+  const arrowLeft = (chip.left + chip.width / 2) - left;
+  popup.style.setProperty('--arrow-left', arrowLeft + 'px');
+
+  // Vertical: prefer above chip; flip below if not enough room
+  const popH = popup.offsetHeight || 240;
+  if (chip.top - popH - MARGIN > 0) {
+    // above
+    popup.style.top  = (chip.top - popH - MARGIN + window.scrollY) + 'px';
+    popup.classList.remove('pop-flipped');
+  } else {
+    // below
+    popup.style.top  = (chip.bottom + MARGIN + window.scrollY) + 'px';
+    popup.classList.add('pop-flipped');
+  }
+}
+
+function outsideClick(e) {
+  const popup = document.getElementById('dict-popup-active');
+  if (!popup) return;
+  if (!popup.contains(e.target) && (!activeChip || !activeChip.contains(e.target))) {
+    closeDict();
+  }
+}
+
+function closeDict() {
+  const old = document.getElementById('dict-popup-active');
+  if (old) old.remove();
+  if (activeChip) activeChip.classList.remove('chip-active');
+  activeChip = null;
+  document.removeEventListener('click', outsideClick);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+if (studentName) {
+  goTo('list');
+}
+// screen-name is already active by default if no name saved
+</script>
+</body>
+</html>
